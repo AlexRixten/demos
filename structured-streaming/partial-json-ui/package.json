@@ -1,0 +1,29 @@
+{
+  "name": "partial-json-ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stand: a React card assembles field-by-field while an OpenAI-compatible SSE stream delivers a JSON answer. Video: 2026-09-structured-streaming.",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev --workspace server\" \"npm run dev --workspace web\"",
+    "mock": "npm run start --workspace server",
+    "check": "tsx scripts/check.mts",
+    "reset": "node scripts/reset.mjs",
+    "record": "node scripts/record.mjs",
+    "build": "npm run build --workspace web"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.15",
+    "concurrently": "^9.1.0",
+    "ffmpeg-static": "^5.3.0",
+    "playwright": "^1.63.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}
