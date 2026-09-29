@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Триаж тикетов · System One</title>
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #11151c; --raised: #161b24; --border: #232936;
+    --text: #e6edf3; --dim: #8b949e; --faint: #5a6373;
+    --green: #4ade80; --red: #f87171; --amber: #fbbf24; --blue: #60a5fa; --purple: #c084fc;
+    --mono: "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; display: flex; flex-direction: column;
+    padding: 22px 28px; gap: 16px; min-width: 1080px; overflow-x: auto;
+  }
+  .mono { font-family: var(--mono); }
+
+  header { display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  header h1 .accent { color: var(--dim); font-weight: 500; }
+  .pill {
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px;
+    font-size: 13px; color: var(--dim); white-space: nowrap;
+  }
+  .pill.ok { color: var(--green); border-color: rgba(74, 222, 128, .45); }
+  .pill.bug { color: var(--red); border-color: rgba(248, 113, 113, .55); background: rgba(248, 113, 113, .08); font-weight: 600; }
+  .spacer { flex: 1; }
+
+  main { display: flex; gap: 16px; flex: 1; min-height: 0; }
+  .col-left { width: 430px; display: flex; flex-direction: column; gap: 14px; }
+  .col-right { flex: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .lbl {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 10px;
+  }
+
+  /* ---- left: ticket + controls ---- */
+  textarea {
+    width: 100%; height: 132px; resize: none; background: var(--raised); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+    font-family: var(--mono); font-size: 13.5px; line-height: 1.55; outline: none;
+  }
+  textarea:focus { border-color: #33405a; }
+  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .presets button {
+    background: var(--raised); color: var(--dim); border: 1px solid var(--border);
+    border-radius: 9px; padding: 9px 10px; font-size: 13px; cursor: pointer; transition: all .15s;
+    font-family: inherit;
+  }
+  .presets button:hover { color: var(--text); border-color: #33405a; background: #1a2029; }
+  .run-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  #classify {
+    background: var(--green); color: #07130c; border: none; border-radius: 10px;
+    padding: 11px 26px; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: all .15s;
+  }
+  #classify:hover { filter: brightness(1.08); }
+  #classify:disabled { opacity: .45; cursor: default; }
+  .status { font-family: var(--mono); font-size: 12px; color: var(--blue); min-height: 16px; }
+  .status.err { color: var(--red); }
+  .thr-box { margin-top: 16px; }
+  .thr-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .thr-head .name { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  .thr-head .val { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--amber); }
+  input[type="range"] { width: 100%; accent-color: var(--amber); height: 22px; cursor: pointer; }
+  .thr-scale { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--faint); }
+  .hint { font-size: 12.5px; color: var(--faint); line-height: 1.6; }
+  .hint b { color: var(--dim); font-weight: 600; }
+
+  /* ---- right: answer ---- */
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .card-head .lbl { margin: 0; }
+  .brow { margin-bottom: 11px; }
+  .bar-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .bar-top .v { font-family: var(--mono); color: var(--dim); transition: color .3s; }
+  .brow.top .bar-top .v, .brow.top .bar-top .n { font-weight: 700; }
+  .brow.top .bar-top .v { color: var(--text); }
+  .track { height: 14px; border-radius: 7px; background: var(--raised); border: 1px solid var(--border); overflow: visible; position: relative; }
+  .fill { height: 100%; width: 0%; border-radius: 7px; transition: width .9s cubic-bezier(.2, .7, .3, 1), background .3s; }
+  .thr-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--text); opacity: .8; border-radius: 1px; }
+  .thr-note { position: absolute; top: 14px; transform: translateX(-50%); font-family: var(--mono); font-size: 10px; color: var(--dim); white-space: nowrap; }
+
+  .meter { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: center; margin-top: 20px; }
+  .meter .big { font-family: var(--mono); font-size: 46px; font-weight: 700; line-height: 1; transition: color .3s; }
+  .meter .sub { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-top: 6px; }
+  .meter .track { height: 20px; }
+  .meter .fill { border-radius: 10px; }
+
+  .refund { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: center; margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
+  .refund .big { font-family: var(--mono); font-size: 30px; font-weight: 700; color: var(--purple); line-height: 1.1; }
+  .refund .flag { font-size: 12px; font-weight: 600; margin-top: 3px; color: var(--faint); }
+  .refund .flag.on { color: var(--purple); }
+  .refund .track { height: 10px; }
+  .refund .fill { background: var(--purple); }
+
+  .route-row { display: flex; gap: 14px; flex: 1; }
+  .route-card { flex: 1.4; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; transition: border-color .4s; }
+  #route {
+    font-family: var(--mono); font-size: 30px; font-weight: 700; border: 2px solid var(--border);
+    border-radius: 999px; padding: 12px 36px; color: var(--dim); transition: all .4s; white-space: nowrap;
+  }
+  #route.assign { color: var(--green); border-color: var(--green); }
+  #route.review { color: var(--amber); border-color: var(--amber); }
+  #route-sub { font-size: 13px; color: var(--dim); text-align: center; }
+  .answer-side { display: flex; flex-direction: column; gap: 14px; flex: 1; min-width: 0; }
+
+  /* ---- journal ---- */
+  .journal { max-height: 230px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .journal::-webkit-scrollbar { width: 8px; }
+  .journal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .journal thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  .journal table { border-collapse: collapse; width: 100%; }
+  th { text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 500; padding: 4px 12px 8px; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  td.time { font-family: var(--mono); font-size: 11.5px; color: var(--faint); white-space: nowrap; }
+  td.tk { font-family: var(--mono); font-size: 12px; color: var(--dim); max-width: 560px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td.rt { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; font-weight: 600; }
+  td.rt.assign { color: var(--green); } td.rt.review { color: var(--amber); }
+  td.nums { font-family: var(--mono); font-size: 12px; color: var(--dim); white-space: nowrap; }
+  .empty { color: var(--faint); font-size: 12.5px; font-family: var(--mono); padding: 6px 2px; }
+
+  /* ---- вертикальный режим (?v=1) для Shorts-тизера ---- */
+  .v-title, .v-cta { display: none; }
+  body.v { min-width: 0; padding: 28px 30px; }
+  body.v .v-title { display: block; font-size: 52px; font-weight: 900; line-height: 1.15; letter-spacing: -.5px; }
+  body.v .v-title b { color: var(--green); }
+  body.v .v-cta { display: block; font-size: 40px; font-weight: 800; text-align: center;
+    padding: 20px; border: 2px solid var(--green); border-radius: 18px; color: var(--green); }
+  body.v header { display: none; }
+  body.v .hint, body.v footer.journal { display: none; }
+  body.v main { flex-direction: column; gap: 18px; }
+  body.v .col-left .card, body.v .col-right { width: auto; min-width: 0; }
+  body.v textarea { font-size: 30px; min-height: 200px; }
+  body.v .presets button { font-size: 26px; padding: 14px 20px; }
+  body.v .run-row #classify { font-size: 30px; padding: 16px 34px; }
+  body.v .thr-box .name, body.v .thr-box .val { font-size: 22px; }
+  body.v .card-head .lbl { font-size: 24px; }
+  body.v .brow .n, body.v .brow .v { font-size: 30px; }
+  body.v .track { height: 30px; border-radius: 15px; }
+  body.v .big { font-size: 58px; }
+  body.v .meter .sub, body.v .refund .flag { font-size: 22px; }
+  body.v #route { font-size: 46px; }
+  body.v #route-sub { font-size: 22px; }
+  body.v .thr-note { font-size: 18px; }
+</style>
+</head>
+<body>
+
+<div class="v-title">ИИ, который <b>не пишет текст</b>, разобрал тикет сам</div>
+
+<header>
+  <h1>Триаж тикетов <span class="accent">· System One</span></h1>
+  <span class="pill mono" id="laya-pill">laya · …</span>
+  <span class="pill ok" id="mode-pill">обычный режим</span>
+  <div class="spacer"></div>
+  <span class="pill mono" id="req-pill">1 запрос → 2 вопроса: department · choice + refund · noul</span>
+</header>
+
+<main>
+  <section class="col-left">
+    <div class="card">
+      <div class="lbl">тикет</div>
+      <textarea id="ticket" placeholder="Вставь текст тикета поддержки…" spellcheck="false"></textarea>
+      <div class="presets">
+        <button data-k="billing">двойное списание</button>
+        <button data-k="api">500 на /orders</button>
+        <button data-k="vague">«опять глючит»</button>
+        <button data-k="happy">комплимент</button>
+      </div>
+      <div class="run-row">
+        <button id="classify">Classify</button>
+        <div class="status" id="status"></div>
+      </div>
+      <div class="thr-box">
+        <div class="thr-head"><span class="name">порог confidence</span><span class="val" id="thr-val">0.60</span></div>
+        <input type="range" id="thr" min="0.3" max="0.9" step="0.05" value="0.6">
+        <div class="thr-scale"><span>0.3</span><span>0.6</span><span>0.9</span></div>
+      </div>
+    </div>
+    <div class="card hint">
+      Один запрос задаёт оба вопроса сразу. <b>department</b> (choice) выбирает команду,
+      <b>refund</b> (noul) — число 0…1: флаг возврата ставится при ≥ <span class="mono" id="rthr-hint">0.7</span>.
+      Маршрут: confidence ≥ порога — <b>assign</b>, ниже — <b>human review</b>.
+    </div>
+  </section>
+
+  <section class="col-right">
+    <div class="card" style="flex:1">
+      <div class="card-head"><span class="lbl">ответ laya</span><span class="pill mono" id="ms">⏱ —</span></div>
+
+      <div class="brow" id="b-billing"><div class="bar-top"><span class="n">billing</span><span class="v" id="bv-billing">—</span></div>
+        <div class="track"><div class="fill" id="bf-billing" style="background:#4ade80"></div></div></div>
+      <div class="brow" id="b-technical"><div class="bar-top"><span class="n">technical</span><span class="v" id="bv-technical">—</span></div>
+        <div class="track"><div class="fill" id="bf-technical" style="background:#60a5fa"></div></div></div>
+      <div class="brow" id="b-sales"><div class="bar-top"><span class="n">sales</span><span class="v" id="bv-sales">—</span></div>
+        <div class="track"><div class="fill" id="bf-sales" style="background:#c084fc"></div></div></div>
+
+      <div class="meter">
+        <div><div class="big" id="conf-val">—</div><div class="sub">confidence</div></div>
+        <div class="track"><div class="fill" id="conf-fill"></div><div class="thr-mark" id="thr-mark"></div><div class="thr-note" id="thr-note">порог 0.60</div></div>
+      </div>
+
+      <div class="refund">
+        <div><div class="big" id="refund-val">—</div><div class="flag" id="refund-flag">refund · noul</div></div>
+        <div class="track"><div class="fill" id="refund-fill"></div><div class="thr-mark" id="rthr-mark"></div><div class="thr-note" id="rthr-note">порог 0.7</div></div>
+      </div>
+    </div>
+
+    <div class="route-row">
+      <div class="card route-card" id="route-card">
+        <div class="lbl" style="margin:0">маршрут</div>
+        <div id="route">—</div>
+        <div id="route-sub">классифицируй тикет</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="v-cta">Как так — в ролике на канале ▶</div>
+
+<footer class="card journal" id="journal-card">
+  <div class="lbl">журнал прогонов</div>
+  <table>
+    <thead><tr><th>время</th><th>тикет</th><th>маршрут</th><th>conf</th><th>refund</th></tr></thead>
+    <tbody id="journal"><tr><td colspan="5" class="empty">пока пусто</td></tr></tbody>
+  </table>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const DEPTS = ["billing", "technical", "sales"];
+  const LS = { thr: "triage.threshold", ticket: "triage.ticket" };
+
+  let thr = 0.6, refundThr = 0.7, last = null, epoch = null;
+
+  // ---------- persistence ----------
+  try {
+    const t = parseFloat(localStorage.getItem(LS.thr));
+    if (t >= 0.3 && t <= 0.9) thr = t;
+    const tk = localStorage.getItem(LS.ticket);
+    if (tk) $("#ticket").value = tk;
+  } catch {}
+  $("#ticket").addEventListener("input", () => localStorage.setItem(LS.ticket, $("#ticket").value));
+
+  // ---------- threshold slider ----------
+  function setThr(v, { save = true, rerender = true } = {}) {
+    thr = Math.round(v * 100) / 100;
+    $("#thr").value = thr;
+    $("#thr-val").textContent = thr.toFixed(2);
+    $("#thr-mark").style.left = (thr * 100) + "%";
+    $("#thr-note").style.left = (thr * 100) + "%";
+    $("#thr-note").textContent = "порог " + thr.toFixed(2);
+    if (save) { try { localStorage.setItem(LS.thr, String(thr)); } catch {} }
+    if (rerender && last) paintConfRoute(last, false);
+  }
+  $("#thr").addEventListener("input", () => setThr(parseFloat($("#thr").value)));
+
+  // ---------- helpers ----------
+  const fmt = (x) => (x == null ? "—" : (+x).toFixed(2));
+  function countUp(el, to, ms) {
+    const from = 0, t0 = performance.now();
+    (function step(t) {
+      const k = Math.min(1, (t - t0) / ms);
+      el.textContent = (from + (to - from) * (1 - Math.pow(1 - k, 3))).toFixed(2);
+      if (k < 1) requestAnimationFrame(step);
+    })(performance.now());
+  }
+  const routeOf = (r) => (r.conf >= thr
+    ? { kind: "assign", text: "assign → " + r.choice, sub: "confidence " + fmt(r.conf) + " ≥ " + thr.toFixed(2) + " — авто-маршрут" }
+    : { kind: "review", text: "human review", sub: "confidence " + fmt(r.conf) + " < " + thr.toFixed(2) + " — решит человек" });
+
+  function resetVisuals() {
+    for (const k of DEPTS) {
+      $("#bf-" + k).style.width = "0%"; $("#bv-" + k).textContent = "—";
+      $("#b-" + k).classList.remove("top");
+    }
+    $("#conf-val").textContent = "—"; $("#conf-val").style.color = "";
+    $("#conf-fill").style.width = "0%"; $("#conf-fill").style.background = "";
+    $("#refund-val").textContent = "—"; $("#refund-fill").style.width = "0%";
+    const fl = $("#refund-flag"); fl.textContent = "refund · noul"; fl.className = "flag";
+    $("#route").textContent = "—"; $("#route").className = "";
+    $("#route-sub").textContent = "классифицируй тикет";
+    $("#route-card").style.borderColor = "";
+    $("#ms").textContent = "⏱ —";
+  }
+
+  function paintBars(r) {
+    for (const k of DEPTS) {
+      const v = r.p[k] || 0;
+      setTimeout(() => { $("#bf-" + k).style.width = (v * 100).toFixed(1) + "%"; }, 120);
+      $("#bv-" + k).textContent = v.toFixed(2);
+      $("#b-" + k).classList.toggle("top", k === r.choice);
+    }
+  }
+
+  function paintConfRoute(r, animate) {
+    const ok = r.conf >= thr, col = ok ? "#4ade80" : "#fbbf24";
+    if (animate) countUp($("#conf-val"), r.conf, 700);
+    else $("#conf-val").textContent = r.conf.toFixed(2);
+    $("#conf-val").style.color = col;
+    $("#conf-fill").style.width = (r.conf * 100).toFixed(1) + "%";
+    $("#conf-fill").style.background = col;
+    const rt = routeOf(r);
+    $("#route").textContent = rt.text;
+    $("#route").className = rt.kind;
+    $("#route-card").style.borderColor = col;
+    $("#route-sub").textContent = rt.sub;
+  }
+
+  function paintRefund(r) {
+    if (r.refund == null) return;
+    $("#refund-val").textContent = r.refund.toFixed(2);
+    $("#refund-fill").style.width = (r.refund * 100).toFixed(1) + "%";
+    const on = r.refund >= refundThr;
+    const fl = $("#refund-flag");
+    fl.textContent = on ? "флаг возврата ✓" : "без флага · порог " + refundThr.toFixed(1);
+    fl.className = "flag" + (on ? " on" : "");
+  }
+
+  async function render(r) {
+    resetVisuals();
+    $("#ms").textContent = "⏱ " + r.ms + " ms";
+    paintBars(r);
+    await new Promise((s) => setTimeout(s, 750));
+    paintConfRoute(r, true);
+    await new Promise((s) => setTimeout(s, 650));
+    paintRefund(r);
+  }
+
+  // ---------- classify ----------
+  $("#classify").addEventListener("click", async () => {
+    const ticket = $("#ticket").value.trim();
+    if (!ticket) { const st = $("#status"); st.textContent = "вставь тикет"; st.className = "status err"; return; }
+    const btn = $("#classify"), st = $("#status");
+    btn.disabled = true; st.className = "status";
+    st.textContent = "POST /api/systemone → laya …";
+    try {
+      const r = await fetch("/api/systemone", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ticket }),
+      }).then((x) => x.json());
+      if (!r.ok) throw new Error(r.error || "laya error");
+      last = r;
+      st.textContent = "";
+      await render(r);
+    } catch (e) {
+      st.textContent = "ошибка: " + e.message; st.className = "status err";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- presets ----------
+  const PRESETS = {
+    billing: "You charged my card twice this month for the Pro plan. I want the duplicate charge removed.",
+    api: "Your API returns a 500 error on every POST to /orders since this morning. Our integration is completely down.",
+    vague: "Hey so the thing from yesterday is acting weird again, not sure what's going on, maybe you guys can look at it?",
+    happy: "Just wanted to say the new export feature is great, nice work!",
+  };
+  document.querySelectorAll(".presets button").forEach((b) =>
+    b.addEventListener("click", () => {
+      $("#ticket").value = PRESETS[b.dataset.k];
+      localStorage.setItem(LS.ticket, $("#ticket").value);
+      $("#ticket").focus();
+    }));
+
+  // ---------- journal ----------
+  function renderJournal(entries) {
+    const tb = $("#journal");
+    if (!entries || !entries.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="empty">пока пусто</td></tr>';
+      return;
+    }
+    tb.innerHTML = [...entries].reverse().map((e) => {
+      const assign = e.conf >= thr;
+      const route = assign ? "assign → " + e.choice : "human review";
+      const flag = e.refund == null ? "" : e.refund >= refundThr ? " ✓" : "";
+      return `<tr><td class="time">${e.ts.slice(11, 19)}</td><td class="tk">${escapeHtml(e.ticket)}</td>` +
+        `<td class="rt ${assign ? "assign" : "review"}">${route}</td>` +
+        `<td class="nums">${e.conf == null ? "—" : e.conf.toFixed(2)}</td>` +
+        `<td class="nums">${e.refund == null ? "—" : e.refund.toFixed(2) + flag}</td></tr>`;
+    }).join("");
+  }
+  const escapeHtml = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // ---------- state poll: bug badge, journal, reset epoch ----------
+  function wipe() {
+    last = null;
+    $("#ticket").value = "";
+    try { localStorage.removeItem(LS.ticket); localStorage.removeItem(LS.thr); } catch {}
+    setThr(0.6, { save: false, rerender: false });
+    resetVisuals();
+    $("#status").textContent = "сброшено"; $("#status").className = "status";
+    setTimeout(() => { if ($("#status").textContent === "сброшено") $("#status").textContent = ""; }, 1500);
+  }
+
+  async function poll() {
+    try {
+      const s = await fetch("/api/state").then((x) => x.json());
+      $("#laya-pill").textContent = "laya · " + String(s.laya || "").replace(/^https?:\/\//, "");
+      const mp = $("#mode-pill");
+      if (s.bug) { mp.textContent = "DEMO_BUG: criteria = коды команд"; mp.className = "pill bug"; }
+      else { mp.textContent = "обычный режим"; mp.className = "pill ok"; }
+      refundThr = s.refundThreshold ?? 0.7;
+      $("#rthr-hint").textContent = refundThr.toFixed(1);
+      $("#rthr-mark").style.left = (refundThr * 100) + "%";
+      $("#rthr-note").style.left = (refundThr * 100) + "%";
+      renderJournal(s.log);
+      if (epoch === null) epoch = s.epoch;
+      else if (s.epoch !== epoch) { epoch = s.epoch; wipe(); }
+    } catch { /* server restarting */ }
+  }
+
+  setThr(thr, { save: false, rerender: false });
+  poll();
+  setInterval(poll, 2000);
+})();
+if (new URLSearchParams(location.search).get("v") === "1") document.body.classList.add("v");
+</script>
+</body>
+</html>

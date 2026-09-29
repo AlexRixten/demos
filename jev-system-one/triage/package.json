@@ -1,0 +1,12 @@
+{
+  "name": "triage-stand",
+  "private": true,
+  "type": "module",
+  "description": "Support-ticket triage stand on laya (Jev / System One wire API) for the 2026-09-jev-system-one video",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "reset": "node scripts/reset.mjs",
+    "check": "node scripts/check.mjs",
+    "record": "node scripts/record.mjs"
+  }
+}
