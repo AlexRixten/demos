@@ -9,22 +9,25 @@
 Нужны Node ≥ 20 и Python ≥ 3.10.
 
 ```bash
-pip install "laya[serve]"        # модель + Jev-совместимый сервер
+python3 -m venv .venv
+.venv/bin/pip install "laya[serve]"   # модель + Jev-совместимый сервер
+
 cd triage
-npm run dev                       # поднимет laya (если не запущена) и UI на http://localhost:5177
+source ../.venv/bin/activate          # laya-serve попадает в PATH
+npm run dev                           # поднимет laya :8307 (первый старт качает веса ~минуту) и UI :5177
 ```
 
 Кнопки-пресеты вставляют канонические тикеты; слайдер меняет порог confidence на ходу — маршрут пересчитывается в журнале.
 
 ## Команды стенда
 
-| Команда | Что делает |
-|---|---|
-| `npm run dev` | поднимает laya-serve (порт 8307, если занят — переиспользует) и UI :5177 |
+| Команда                   | Что делает                                                                                                        |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`             | поднимает laya-serve (порт 8307, если занят — переиспользует) и UI :5177                                          |
 | `DEMO_BUG=on npm run dev` | баг-режим: описания вариантов превращаются в коды команд (`FIN-OPS`…) — уверенность падает, тикеты уходят в ревью |
-| `npm run check` | smoke-тест: канонические тикеты в обоих режимах + прокси |
-| `npm run reset` | чистит журнал и состояние UI между дублями |
-| `npm run record` | автозапись экрана (нужен `npm i playwright` + chromium) |
+| `npm run check`           | smoke-тест: канонические тикеты в обоих режимах + прокси                                                          |
+| `npm run reset`           | чистит журнал и состояние UI между дублями                                                                        |
+| `npm run record`          | автозапись экрана (нужен `npm i playwright` + chromium)                                                           |
 
 Порт/адрес laya переопределяется: `SYSTEMONE_URL=http://localhost:8000/v1/systemone npm run dev`.
 
@@ -37,7 +40,7 @@ SYSTEMONE_URL=http://localhost:8000 node triage.ts "You charged my card twice th
 # → billing · p=0.9369 · confidence=0.75 · 56 ms
 ```
 
-(Node ≥ 22.6 c `--experimental-strip-types` или Node 24+ из коробки; младше — через `npx tsx triage.ts`.)
+(Node ≥ 22.6 с `--experimental-strip-types` или Node 24+ из коробки; младше — через `npx tsx triage.ts`.)
 
 ## Важно
 
@@ -50,4 +53,3 @@ SYSTEMONE_URL=http://localhost:8000 node triage.ts "You charged my card twice th
 - laya — https://github.com/NandhaKishorM/laya
 - TypeSafe AI / Jev — https://typesafe.ai, дока — https://docs.typesafe.ai
 - Jev в AI SDK (гайд Vercel) — https://vercel.com/kb/guide/typesafe-jev-and-ai-sdk
-- Разбор в видео: [ссылка на ролик — добавить после публикации]
