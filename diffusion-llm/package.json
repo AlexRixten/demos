@@ -1,0 +1,23 @@
+{
+  "name": "diffusing-stream-demo",
+  "private": true,
+  "type": "module",
+  "description": "Diffusing stream demo (Mercury-style): side-by-side OpenAI deltas vs full-state diffusing chunks — companion to the diffusion-llm video",
+  "scripts": {
+    "dev": "vite",
+    "mock": "node mock-server.mjs",
+    "check": "node check.mjs",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
