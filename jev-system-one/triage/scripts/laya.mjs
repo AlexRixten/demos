@@ -14,7 +14,7 @@ export const STAND = path.dirname(HERE);                          // triage/
 export const LAYA_ENDPOINT = process.env.SYSTEMONE_URL || "http://localhost:8307/v1/systemone";
 const LAYA_BASE = LAYA_ENDPOINT.replace(/\/v1\/[^/]*\/?$/, "");
 const LAYA_PORT = Number(/^http:\/\/(?:localhost|127\.0\.0\.1):(\d+)/.exec(LAYA_BASE)?.[1] || 8307);
-// локальный venv фабрики, а вне её — глобальный laya-serve из PATH (`pip install "laya[serve]"`)
+// laya-serve: из соседнего venv ../laya-check/.venv, если он есть, иначе из PATH (`pip install "laya[serve]"`, см. README)
 const VENV_BIN = path.join(STAND, "..", "laya-check", ".venv", "bin", "laya-serve");
 const LAYA_BIN = existsSync(VENV_BIN) ? VENV_BIN : "laya-serve";
 

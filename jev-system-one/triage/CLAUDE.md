@@ -26,23 +26,21 @@
   выходит 0/1. Сравнивает направление и близость к канону ±0.05.
 - `npm run record` — автозапись экрана UI через playwright+ffmpeg (без голоса),
   сценарий из `demo.md`, mp4 пишется рядом со стендом (`record-triage.mp4`).
-- Дублями с голосом — OBS global hotkey (F9), свой каталог записи.
-  Старт/стоп записи никогда не делается в терминале во время дубля.
 
 ## Устройство
 
 - Node без фреймворков: `server.mjs` — статика + прокси (UI ходит только на свой
   origin, без CORS). laya-URL из env `SYSTEMONE_URL`
   (дефолт `http://localhost:8307/v1/systemone`).
-- laya: venv в `../laya-check/.venv` (модуль laya 0.3.20, веса скачаны);
-  запуск `LAYA_DEVICE=cpu LAYA_PORT=8307 ../laya-check/.venv/bin/laya-serve`.
-- playwright для record: `node_modules` — symlink на `../../../../tools/node_modules`.
-  В package.json нет зависимостей — стенд живёт на symlink и умирает вместе с видео.
+- laya 0.3.20: `laya-serve` берётся из PATH (venv по README: `source ../.venv/bin/activate`);
+  ручной запуск — `LAYA_DEVICE=cpu LAYA_PORT=8307 laya-serve`.
+- playwright для record в зависимости не входит: `npm i playwright && npx playwright install chromium`,
+  плюс `ffmpeg` в PATH.
 - Пороги: confidence ≥ 0.6 → `assign → <команда>`, иначе `human review`;
   refund-флаг при noul ≥ 0.7. Слайдер порога в UI: 0.3–0.9, дефолт 0.6.
 
 ## Правила
 
 - Фразы канонических тикетов и тексты criteria — константы, не перефразировать.
-- Ничего не писать вне `demos/triage/` (читать домен можно).
+- Ничего не писать вне папки стенда `triage/`.
 - Ответы и данные — по-русски; даты ISO.

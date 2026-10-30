@@ -15,7 +15,7 @@ refund-чекпоинтом (флаг при noul ≥ 0.7). Внизу — жу�
 Слайдер порога confidence (0.3–0.9, дефолт 0.6) пересчитывает маршрут на лету —
 порог это регулятор цены ошибки.
 
-## Денежный кадр
+## Главный момент
 
 Расплывчатый тикет («the thing from yesterday is acting weird again… maybe you
 guys can look at it?»): верхний бар technical ≈ 0.82 — звучит уверенно, — но
@@ -47,7 +47,7 @@ DEMO_BUG: двойное списание conf ≈ 0.51 → review; 500-тике
    флаг возврата ✓. Пауза.
 3. Пресет «500 на /orders» → Classify: `assign → technical`, refund 0.58 —
    ниже 0.7, без флага. Пауза.
-4. Пресет «опять глючит» → Classify — денежный кадр: technical 0.82, но
+4. Пресет «опять глючит» → Classify — главный момент: technical 0.82, но
    confidence 0.47 (amber) → `human review`. Долгая пауза.
 5. Пресет «комплимент» → Classify: плоские бары, confidence 0.006 → review.
 6. Снова «опять глючит» → Classify; затем слайдер порога клавишами ←←←
